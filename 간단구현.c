@@ -4,33 +4,33 @@
 #include <stdlib.h>
 
 #define N 30                // N
-#define READ_LEN 12         // readÀÇ ±æÀÌ(L)
-#define READS_COUNT 3       // read °³¼ö (M)
-#define MAX_MISMATCH 2      // Çã¿ë °¡´ÉÇÑ ÃÖ´ë mismatch ¼ö
-#define PARTS 3             // read¸¦ ³ª´­ ºÎºĞ ¼ö (d+1)
-#define PARTLEN 4           // read¸¦ d+1·Î ³ª´« ÆÄÆ® ±æÀÌ (L / PARTS)
-#define q 10007             // ÇØ½Ã °è»ê¿¡ »ç¿ëÇÒ ¼Ò¼ö q
+#define READ_LEN 12         // readì˜ ê¸¸ì´(L)
+#define READS_COUNT 3       // read ê°œìˆ˜ (M)
+#define MAX_MISMATCH 2      // í—ˆìš© ê°€ëŠ¥í•œ ìµœëŒ€ mismatch ìˆ˜
+#define PARTS 3             // readë¥¼ ë‚˜ëˆŒ ë¶€ë¶„ ìˆ˜ (d+1)
+#define PARTLEN 4           // readë¥¼ d+1ë¡œ ë‚˜ëˆˆ íŒŒíŠ¸ ê¸¸ì´ (L / PARTS)
+#define q 10007             // í•´ì‹œ ê³„ì‚°ì— ì‚¬ìš©í•  ì†Œìˆ˜ q
 
-// ¿øº» reference ¼­¿­
+// ì›ë³¸ reference
 char reference[N + 1] = "ACGTTGCAAGTCGATCGTACGATCGTACGT";
 
-// ºñ±³ ´ë»ó readµé
+// read
 char* reads[READS_COUNT] = {
     "GTCGTTCGTCCG",
     "ACGCTGCATGTC",
     "CCGATCGTACGT"
 };
 
-// ÇØ½Ã Å×ÀÌºí¿¡ »ç¿ëÇÒ ±¸Á¶Ã¼ Á¤ÀÇ (Ã¼ÀÌ´× ¹æ½Ä »ç¿ë)
+// í•´ì‹œ í…Œì´ë¸”(ì²´ì´ë‹ ë°©ì‹ ì‚¬ìš©)
 typedef struct HashEntry {
-    int pos;                   // reference¿¡¼­ÀÇ ½ÃÀÛ À§Ä¡
-    struct HashEntry* next;    // Ãæµ¹ ½Ã ¿¬°á ¸®½ºÆ®·Î ¿¬°á
+    int pos;                   // referenceì—ì„œì˜ ì‹œì‘ ìœ„ì¹˜
+    struct HashEntry* next;    // ì¶©ëŒ ì‹œ ì—°ê²° ë¦¬ìŠ¤íŠ¸ë¡œ ì—°ê²°
 } HashEntry;
 
-#define HASH_SIZE 10007       // ÇØ½Ã Å×ÀÌºí Å©±â
-HashEntry* hashTable[HASH_SIZE]; // ÇØ½Ã Å×ÀÌºí Àü¿ª ¹è¿­
+#define HASH_SIZE 10007       // í•´ì‹œ í…Œì´ë¸” í¬ê¸°
+HashEntry* hashTable[HASH_SIZE]; // í•´ì‹œ í…Œì´ë¸” ì „ì—­ ë°°ì—´
 
-// ¹®ÀÚ¸¦ ¼ıÀÚ·Î ¸ÅÇÎ (A=0, C=1, G=2, T=3)
+// ë¬¸ì-> ìˆ«ì
 int hash_data(char c) {
     switch (c) {
     case 'A': return 0;
@@ -41,7 +41,7 @@ int hash_data(char c) {
     return -1;
 }
 
-// ¶óºó-Ä«ÇÁ ÇØ½Ã °è»ê ÇÔ¼ö (4Áø¼ö ±â¹İ)
+// ë¼ë¹ˆì¹´í”„ í•´ì‹œ ê³„ì‚° í•¨ìˆ˜ (4ì§„ìˆ˜ ê¸°ë°˜)
 unsigned int computeHash(char* str, int len) {
     unsigned int hash = 0;
     for (int i = 0; i < len; i++) {
@@ -50,7 +50,7 @@ unsigned int computeHash(char* str, int len) {
     return hash;
 }
 
-// ÇØ½Ã Å×ÀÌºí¿¡ À§Ä¡ Á¤º¸ »ğÀÔ
+// í•´ì‹œ í…Œì´ë¸”ì— ìœ„ì¹˜ ì •ë³´ ì‚½ì…
 void insertToHash(unsigned int hash, int pos) {
     HashEntry* entry = (HashEntry*)malloc(sizeof(HashEntry));
     entry->pos = pos;
@@ -58,31 +58,31 @@ void insertToHash(unsigned int hash, int pos) {
     hashTable[hash] = entry;
 }
 
-// reference¸¦ ±â¹İÀ¸·Î ÇØ½Ã Å×ÀÌºí ±¸¼º
+// referenceë¥¼ ê¸°ë°˜ìœ¼ë¡œ í•´ì‹œ í…Œì´ë¸” êµ¬ì„±
 void buildHashTable(int k) {
     int refLen = strlen(reference);
     if (refLen < k) return;
 
-    // ÇØ½Ã °è»êÀ» À§ÇÑ ÃÊ±â°ª ¹× ÃÖ°íÂ÷ Ç× °è»ê
+    // í•´ì‹œ ê³„ì‚°ì„ ìœ„í•œ ì´ˆê¸°ê°’ ë° ìµœê³ ì°¨ í•­ ê³„ì‚°
     unsigned int hash = 0;
     unsigned int highest_power = 1;
     for (int i = 0; i < k - 1; i++) highest_power = (highest_power * 4) % q;
 
-    // Ã¹ ¼­ºê½ºÆ®¸µ ÇØ½Ã »ğÀÔ
+    // ì²« ì„œë¸ŒìŠ¤íŠ¸ë§ í•´ì‹œ ì‚½ì…
     for (int i = 0; i < k; i++) {
         hash = (hash * 4 + hash_data(reference[i])) % q;
     }
     insertToHash(hash, 0);
 
-    // ÀÌÈÄ rolling hash·Î ³ª¸ÓÁö »ğÀÔ
+    // ì´í›„ rolling hashë¡œ ë‚˜ë¨¸ì§€ ì‚½ì…
     for (int i = 1; i <= refLen - k; i++) {
-        hash = (hash + q - (hash_data(reference[i - 1]) * highest_power) % q) % q; //¾Õ¹®ÀÚ »èÁ¦ (4)231
-        hash = (hash * 4 + hash_data(reference[i + k - 1])) % q; //»õ·Î¿î µŞ¹®ÀÚ Ãß°¡ (4)2317 -> »õ·Î¿îÇØ½Ã
+        hash = (hash + q - (hash_data(reference[i - 1]) * highest_power) % q) % q; //ì•ë¬¸ì ì‚­ì œ (4)231
+        hash = (hash * 4 + hash_data(reference[i + k - 1])) % q; //ìƒˆë¡œìš´ ë’·ë¬¸ì ì¶”ê°€ (4)2317 -> ìƒˆë¡œìš´í•´ì‹œ
         insertToHash(hash, i);
     }
 }
 
-// µÎ ¹®ÀÚ¿­À» ºñ±³ÇÏ¿© mismatch °³¼ö ¹İÈ¯ (Çã¿ë ÃÊ°ú½Ã -1 ¹İÈ¯)
+// ë‘ ë¬¸ìì—´ì„ ë¹„êµí•˜ì—¬ mismatch ê°œìˆ˜ ë°˜í™˜ (í—ˆìš© ì´ˆê³¼ì‹œ -1 ë°˜í™˜)
 int compareWithMismatch(char* a, char* b, int len) {
     int mismatches = 0;
     for (int i = 0; i < len; i++) {
@@ -96,59 +96,59 @@ int compareWithMismatch(char* a, char* b, int len) {
 }
 
 int main() {
-    // reference º¹»çº»À» result¿¡ ÀúÀå (µ¹¿¬º¯ÀÌ °á°ú Ãâ·Â¿ë)
+    // reference ë³µì‚¬ë³¸ì„ resultì— ì €ì¥ (ëŒì—°ë³€ì´ ê²°ê³¼ ì¶œë ¥ìš©)
     char result[sizeof(reference)];
-    strcpy(result, reference); //¿øº»¿¡¼­ d¸¸ ¹Ù²Ù´Â ½ÄÀ¸·Î ÁøÇà
+    strcpy(result, reference); //ì›ë³¸ì—ì„œ dë§Œ ë°”ê¾¸ëŠ” ì‹ìœ¼ë¡œ ì§„í–‰
 
-    // ÇØ½Ã Å×ÀÌºí ±¸¼º
+    // í•´ì‹œ í…Œì´ë¸” êµ¬ì„±
     buildHashTable(PARTLEN);
 
-    // °¢ read¿¡ ´ëÇØ Ã³¸®
+    // ê° readì— ëŒ€í•´ ì²˜ë¦¬
     for (int r = 0; r < READS_COUNT; r++) {
         char* read = reads[r];
-        int matched = 0; // ÇöÀç ¸®µå°¡ reference¿¡ ¸ÅÄ¡µÇ¾ú´ÂÁö ¿©ºÎ
+        int matched = 0; // í˜„ì¬ ë¦¬ë“œê°€ referenceì— ë§¤ì¹˜ë˜ì—ˆëŠ”ì§€ ì—¬ë¶€
 
-        // read¸¦ PARTS(3)·Î ³ª´©¾î ÇÏ³ª¾¿ ÇØ½Ã ºñ±³
+        // readë¥¼ PARTS(3)ë¡œ ë‚˜ëˆ„ì–´ í•˜ë‚˜ì”© í•´ì‹œ ë¹„êµ
         for (int part = 0; part < PARTS; part++) {
-            char sub[5]; // part ±æÀÌ + 1
+            char sub[5]; // part ê¸¸ì´ + 1
             strncpy(sub, &read[part * PARTLEN], PARTLEN);
             sub[PARTLEN] = '\0';
 
-            // ÇØ½Ã°ª °è»ê ÈÄ ÇØ½Ã Å×ÀÌºí °Ë»ö
-            unsigned int h = computeHash(sub, PARTLEN); //ÇØ½Ã°è»ê
-            HashEntry* entry = hashTable[h]; //°Ë»ö
+            // í•´ì‹œê°’ ê³„ì‚° í›„ í•´ì‹œ í…Œì´ë¸” ê²€ìƒ‰
+            unsigned int h = computeHash(sub, PARTLEN); //í•´ì‹œê³„ì‚°
+            HashEntry* entry = hashTable[h]; //ê²€ìƒ‰
 
             while (entry) {
-                // ¸®µå¸¦ ¿ø·¡ À§Ä¡·Î º¹¿øÇÏ±â À§ÇØ º¸Á¤
+                // ë¦¬ë“œë¥¼ ì›ë˜ ìœ„ì¹˜ë¡œ ë³µì›í•˜ê¸° ìœ„í•´ ë³´ì •
                 int ref_start = entry->pos - part * PARTLEN;
 
-                // ¹üÀ§ ¹ş¾î³ªÁö ¾Êµµ·Ï È®ÀÎ
+                // ë²”ìœ„ ë²—ì–´ë‚˜ì§€ ì•Šë„ë¡ í™•ì¸
                 if (ref_start >= 0 && ref_start + READ_LEN <= strlen(reference)) {
                     char* refSegment = &reference[ref_start];
 
-                    int mismatch = compareWithMismatch(read, refSegment, READ_LEN); //mismatch È½¼ö ¸®ÅÏ
+                    int mismatch = compareWithMismatch(read, refSegment, READ_LEN); //mismatch íšŸìˆ˜ ë¦¬í„´
 
                     if (mismatch >= 0) {
-                        // mismatch Çã¿ë ¹üÀ§(d) ÀÌ³» ¡æ µ¹¿¬º¯ÀÌ ¼öÁ¤
+                        // mismatch í—ˆìš© ë²”ìœ„(d) ì´ë‚´ â†’ ëŒì—°ë³€ì´ ìˆ˜ì •
                         for (int i = 0; i < READ_LEN; i++) {
                             if (read[i] != refSegment[i]) {
-                                result[ref_start + i] = read[i]; // mismatch ¼öÁ¤
+                                result[ref_start + i] = read[i]; // mismatch ìˆ˜ì •
                             }
                         }
-                        matched = 1; //ÇöÀç ¸®µå°¡ reference¿¡ ¸ÅÄ¡o
+                        matched = 1; //í˜„ì¬ ë¦¬ë“œê°€ referenceì— ë§¤ì¹˜o
                         break;
                     }
                 }
                 entry = entry->next;
             }
 
-            if (matched) break; // ÇÑ ÆÄÆ®¿¡¼­ ¼º°øÇÏ¸é(matched = 1) ´ÙÀ½ read·Î ³Ñ¾î°¨
+            if (matched) break; // í•œ íŒŒíŠ¸ì—ì„œ ì„±ê³µí•˜ë©´(matched = 1) ë‹¤ìŒ readë¡œ ë„˜ì–´ê°
         }
     }
 
-    // °á°ú Ãâ·Â
-    printf("¿øº»:\n%s\n", reference);
-    printf("°á°ú:\n%s\n", result);
+    // ê²°ê³¼ ì¶œë ¥
+    printf("ì›ë³¸:\n%s\n", reference);
+    printf("ê²°ê³¼:\n%s\n", result);
 
     return 0;
 }
